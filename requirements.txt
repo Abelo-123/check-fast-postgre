@@ -2,4 +2,3 @@ fastapi
 asyncpg
 uvicorn
 psycopg2-binary
-strawberry-graphql

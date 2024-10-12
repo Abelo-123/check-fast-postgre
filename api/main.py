@@ -1,10 +1,9 @@
 from fastapi import FastAPI, HTTPException
 import psycopg2
+from psycopg2 import sql
 from psycopg2.extras import RealDictCursor
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import strawberry
-from strawberry.fastapi import GraphQLRouter
 
 # Database connection parameters
 DATABASE_URL = "postgresql://postgres.bihqharjyezzxhsghell:newPass12311220yU@aws-0-us-east-1.pooler.supabase.com:6543/postgres"
@@ -33,40 +32,20 @@ def create_connection():
         print(f"Error: {e}")
         raise HTTPException(status_code=500, detail="Database connection failed.")
 
-# Define a function to add a user
-def add_user_to_db(username: str, email: str):
+@app.post("/add-user")
+async def add_user(user: User):
     conn = None
     try:
         conn = create_connection()
         with conn.cursor() as cursor:
             cursor.execute(
                 "INSERT INTO users (username, email) VALUES (%s, %s)",
-                (username, email),
+                (user.username, user.email),
             )
             conn.commit()  # Commit the transaction
+        return {"status": "User added successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error adding user: {str(e)}")
     finally:
         if conn:
             conn.close()
-
-# GraphQL Schema
-@strawberry.type
-class Mutation:
-    @strawberry.mutation
-    def add_user(self, username: str, email: str) -> str:
-        add_user_to_db(username, email)
-        return "User added successfully"
-
-schema = strawberry.Schema(mutation=Mutation)
-
-# Create GraphQL router
-graphql_app = GraphQLRouter(schema)
-
-# Include the GraphQL router
-app.include_router(graphql_app, prefix="/graphql")
-
-# Example REST endpoint for testing
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
