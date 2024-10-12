@@ -1,10 +1,10 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, Session
-from fastapi.concurrency import run_in_threadpool
+import os
 
-# Database connection string
-DATABASE_URL = "postgresql://postgres.bihqharjyezzxhsghell:newPass12311220yU@aws-0-us-east-1.pooler.supabase.com:6543/postgres"
+# Database connection string from environment variable
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 # Create the SQLAlchemy engine
 sync_engine = create_engine(DATABASE_URL, echo=True)
