@@ -1,6 +1,5 @@
 from fastapi import FastAPI, HTTPException
 import asyncpg
-from fastapi.concurrency import run_in_threadpool
 
 # Database connection parameters
 DATABASE_URL = "postgresql://postgres.bihqharjyezzxhsghell:newPass12311220yU@aws-0-us-east-1.pooler.supabase.com:6543/postgres"
@@ -21,15 +20,17 @@ async def startup():
 
 @app.on_event("shutdown")
 async def shutdown():
-    await pool.close()
+    if pool is not None:
+        await pool.close()
 
 @app.get("/test-sync")
 async def test_sync():
+    if pool is None:
+        raise HTTPException(status_code=500, detail="Database connection pool is not initialized.")
+
     try:
         async with pool.acquire() as connection:
-            # Query to fetch usernames from the 'users' table
             result = await connection.fetch("SELECT username FROM users")
-            # Convert the result to a list of dictionaries
             usernames = [{"username": row["username"]} for row in result]
             return {"status": "Connected", "usernames": usernames}
 
@@ -37,6 +38,7 @@ async def test_sync():
         print(f"Error: {e}")
         raise HTTPException(status_code=500, detail=f"Sync DB error: {str(e)}")
 
+# Uncomment this line when testing locally
 # if __name__ == "__main__":
 #     import uvicorn
 #     uvicorn.run(app, host="127.0.0.1", port=8000)
