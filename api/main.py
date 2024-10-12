@@ -2,6 +2,9 @@ from fastapi import FastAPI, HTTPException
 import asyncpg
 import logging
 
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+
 # Database connection parameters
 DATABASE_URL = "postgresql://postgres.bihqharjyezzxhsghell:newPass12311220yU@aws-0-us-east-1.pooler.supabase.com:6543/postgres"
 
@@ -36,6 +39,7 @@ async def shutdown():
 @app.get("/test-sync")
 async def test_sync():
     if pool is None:
+        logging.error("Database pool not initialized.")
         raise HTTPException(status_code=500, detail="Database pool not initialized.")
 
     try:
