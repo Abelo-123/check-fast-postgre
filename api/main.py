@@ -3,6 +3,7 @@ import psycopg2
 from psycopg2 import sql
 from psycopg2.extras import RealDictCursor
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 # Database connection parameters
 DATABASE_URL = "postgresql://postgres.bihqharjyezzxhsghell:newPass12311220yU@aws-0-us-east-1.pooler.supabase.com:6543/postgres"
@@ -17,6 +18,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Define a Pydantic model for the request body
+class User(BaseModel):
+    username: str
+    email: str
+
 # Function to create a database connection
 def create_connection():
     try:
@@ -26,25 +32,6 @@ def create_connection():
         print(f"Error: {e}")
         raise HTTPException(status_code=500, detail="Database connection failed.")
 
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
-
-@app.get("/test-db-connection")
-async def test_db_connection():
-    conn = None
-    try:
-        conn = create_connection()
-        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-            # Fetch usernames from the 'users' table
-            cursor.execute("SELECT username FROM users")
-            result = cursor.fetchall()  # Use fetchall() to get all usernames
-        return {"status": "Connected", "usernames": result}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database connection failed: {str(e)}")
-    finally:
-        if conn:
-            conn.close()
 @app.post("/add-user")
 async def add_user(user: User):
     conn = None
