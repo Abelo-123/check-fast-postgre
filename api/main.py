@@ -45,3 +45,20 @@ async def test_db_connection():
     finally:
         if conn:
             conn.close()
+@app.post("/add-user")
+async def add_user(user: User):
+    conn = None
+    try:
+        conn = create_connection()
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "INSERT INTO users (username, email) VALUES (%s, %s)",
+                (user.username, user.email),
+            )
+            conn.commit()  # Commit the transaction
+        return {"status": "User added successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error adding user: {str(e)}")
+    finally:
+        if conn:
+            conn.close()
