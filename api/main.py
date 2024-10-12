@@ -10,17 +10,15 @@ DATABASE_URL = "postgresql://postgres.bihqharjyezzxhsghell:newPass12311220yU@aws
 
 app = FastAPI()
 
-@app.on_event("startup")
-async def startup():
-    try:
-        # Attempt to create a pool and test the connection
-        pool = await asyncpg.create_pool(DATABASE_URL)
-        async with pool.acquire() as connection:
-            await connection.fetch("SELECT 1")
-        logging.info("Database connection established successfully.")
-    except Exception as e:
-        logging.error(f"Failed to connect to the database: {e}")
-
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
+
+@app.get("/test-db-connection")
+async def test_db_connection():
+    try:
+        async with pool.acquire() as connection:
+            result = await connection.fetch("SELECT 1")
+            return {"status": "Connected", "result": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Database connection failed.")
